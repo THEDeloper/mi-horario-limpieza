@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>Invasión Estelar PRO — Campaña + Torneo</title>
+  <link rel="stylesheet" href="./styles_updated.css" />
+</head>
+
+<body>
+  <div class="hud">
+    <div class="stats">
+      <div class="pill">💰 <b id="coins">0</b></div>
+      <div class="pill">Puntos: <b id="score">0</b></div>
+      <div class="pill">❤️ <b id="lives">0</b></div>
+      <div class="pill">🛡️ <b id="shields">0</b></div>
+      <div class="pill">🚀 <b id="missiles">0</b></div>
+      <div class="pill">Nivel: <b id="level">1</b></div>
+      <div class="pill">Modo: <b id="modeTxt">MENÚ</b></div>
+    </div>
+
+    <div class="controls">
+      <button class="btn primary" id="btnFullscreen">Pantalla completa</button>
+      <button class="btn" id="btnPause">Pausar</button>
+      <button class="btn" id="btnSound">Sonido: ON</button>
+      <button class="btn danger" id="btnReset">Reset progreso</button>
+    </div>
+  </div>
+
+  <div class="main">
+    <div class="stage">
+      <canvas id="game"></canvas>
+      <div class="toast" id="toast"></div>
+      <div class="touch" id="touchControls" aria-hidden="true">
+        <div class="joy" id="joyBase">
+          <div class="joy-knob" id="joyKnob"></div>
+        </div>
+        <div class="touchBtns">
+          <button class="tbtn fire" id="btnFire">Disparar</button>
+          <button class="tbtn missile" id="btnMissile">Misil</button>
+          <button class="tbtn pause" id="btnPauseTouch">Pausa</button>
+        </div>
+      </div>
+
+      <div class="overlay" id="menu">
+        <div class="card">
+          <h1>Invasión Estelar PRO — Solo Campaña + Torneo</h1>
+
+          <div class="grid">
+            <div class="mode" data-mode="campaign">
+              <h3>Campaña</h3>
+              <p>Oleadas + bosses con cooldown. Ganas monedas, contratos y mejoras.</p>
+            </div>
+            <div class="mode" data-mode="tournament">
+              <h3>Torneo (visual + apuestas)</h3>
+              <p>Participas tú. Entrada mínima <b>10,000</b> 💰. Pool + trofeo + skins.</p>
+            </div>
+          </div>
+
+          <div class="small">
+            <b>Controles:</b><br>
+            • Mover: <span class="kbd">←</span> <span class="kbd">→</span> <span class="kbd">↑</span> <span class="kbd">↓</span><br>
+            • Disparar: <span class="kbd">ESPACIO</span><br>
+            • Misil: <span class="kbd">M</span> (consume 1, daño brutal)<br>
+            • Pausa: <span class="kbd">P</span><br>
+            • <b>Test</b>: agrega monedas con <span class="kbd">*</span> (o numpad ×)
+          </div>
+
+          <div class="small">
+            <b>Modo GOD:</b> IA humana, público, ranking corporativo, skins de campeón, misiles de 50K, y si una pieza está en 0% tu nave queda <b>INOPERABLE</b> hasta reparar.
+          </div>
+
+          <div style="display:flex; gap:10px; justify-content:flex-end; flex-wrap:wrap;">
+            <button class="btn primary" id="btnStartDefault">Empezar (Campaña)</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <aside class="side">
+      <header>
+        <div style="font-weight:1000;letter-spacing:.14em;text-transform:uppercase;font-size:.82rem;">Hangar corporativo</div>
+        <div class="tabs">
+          <div class="tab active" id="tabShop">Tienda</div>
+          <div class="tab" id="tabUpg">I+D</div>
+          <div class="tab" id="tabParts">Piezas</div>
+          <div class="tab" id="tabRepair">Reparar</div>
+          <div class="tab" id="tabRank">Ranking</div>
+        </div>
+      </header>
+
+      <div class="content">
+        <div id="viewShop">
+          <div class="small">
+            <b>Tip GOD:</b> si alguna pieza está en <b>0%</b>, tu nave queda <b>INOPERABLE</b> y no puedes jugar hasta reparar.
+          </div>
+
+          <div class="shop-grid" id="shopShips"></div>
+
+          <div class="item">
+            <h4>🛡️ Escudos (consumible) <span class="badge" id="shieldCountBadge">0</span></h4>
+            <p>Bloquea 1 golpe. Se guarda.</p>
+            <div class="row">
+              <button class="buy2" id="buyShield1">Comprar x1 (250 💰)</button>
+              <button class="buy2" id="buyShield5">Comprar x5 (1100 💰)</button>
+            </div>
+          </div>
+
+          <div class="item">
+            <h4>🚀 Misiles Corporativos <span class="badge" id="missileCountBadge">0</span></h4>
+            <p>Daño masivo + explosión con fragmentos. Se dispara con <b>M</b>.</p>
+            <div class="row">
+              <button class="buy2" id="buyMissile1">Comprar x1 (50,000 💰)</button>
+              <button class="buy2" id="buyMissile3">Comprar x3 (145,000 💰)</button>
+            </div>
+            <div class="tiny">En torneo, un misil bien puesto = KO casi seguro 😈</div>
+          </div>
+        </div>
+
+        <div id="viewUpg" style="display:none">
+          <div class="small"><b>I+D permanente</b> (guardado): afecta a todas las naves.</div>
+
+          <div class="item">
+            <h4>⚡ Cadencia <span class="badge" id="uRate">Lv 0</span></h4>
+            <p>Disparas más rápido (reduce cooldown base).</p>
+            <div class="row"><button class="buy2" id="uRateBtn">Comprar</button></div>
+          </div>
+
+          <div class="item">
+            <h4>💥 Daño <span class="badge" id="uDmg">Lv 0</span></h4>
+            <p>Las balas pegan más (daño base).</p>
+            <div class="row"><button class="buy2" id="uDmgBtn">Comprar</button></div>
+          </div>
+
+          <div class="item">
+            <h4>🧲 Imán <span class="badge" id="uMag">Lv 0</span></h4>
+            <p>Atrae monedas cercanas.</p>
+            <div class="row"><button class="buy2" id="uMagBtn">Comprar</button></div>
+          </div>
+
+          <div class="item">
+            <h4>🛡️ Bloqueo inteligente <span class="badge" id="uBlock">Lv 0</span></h4>
+            <p>Chance de bloquear sin gastar escudo (tiene cooldown).</p>
+            <div class="row"><button class="buy2" id="uBlockBtn">Comprar</button></div>
+          </div>
+          <div class="item">
+            <h4>🔦 Tecnología Laser <span class="badge" id="uLaser">Lv 0</span></h4>
+            <p>Convierte tus disparos en “laser-bolts”: más rápidos, más daño y rastro luminoso (se nota brutal).</p>
+            <div class="row"><button class="buy2" id="uLaserBtn">Comprar</button></div>
+          </div>
+
+        </div>
+
+        <div id="viewParts" style="display:none">
+          <div class="small">
+            <b>Piezas y custom:</b> compra y equipa por categoría. Si se rompen, se nota.
+          </div>
+
+          <div class="item">
+            <h4>🎨 Color / Skin <span class="badge" id="paintBadge">—</span></h4>
+            <p>Cosmético, pero se ve brutal 😎. Si ganas torneos desbloqueas skins.</p>
+            <div class="row">
+              <input id="paintColor" type="color" />
+              <button class="buy2" id="savePaint">Guardar</button>
+            </div>
+            <div class="tiny" id="skinsTxt">Skins: —</div>
+          </div>
+
+          <div class="item">
+            <h4>⚙️ Catálogo de piezas <span class="badge" id="partsModeBadge">Motor</span></h4>
+            <div class="row">
+              <button id="partsMotor">Motor</button>
+              <button id="partsWeapon">Arma</button>
+              <button id="partsHull">Casco</button>
+              <button id="partsShield">Escudo</button>
+            </div>
+            <div class="tiny">Compra piezas y luego “Equipar”. Cada nave tiene su loadout.</div>
+          </div>
+
+          <div class="shop-grid" id="shopParts"></div>
+
+          <div class="item">
+            <h4>📃 Contratos (campaña) <span class="badge" id="contractsBadge">0/3</span></h4>
+            <p id="contractsTxt" class="tiny">—</p>
+          </div>
+        </div>
+
+        <div id="viewRepair" style="display:none">
+          <div class="small">
+            <b>Reparaciones GOD:</b> ahora son más caras. Si algo llega a 0% tu nave queda <b>INOPERABLE</b>.
+          </div>
+
+          <div class="item">
+            <h4>Estado de piezas <span class="badge" id="durBadge">—</span></h4>
+            <div class="tiny" id="durTxt">—</div>
+            <div class="hr"></div>
+            <div class="row">
+              <button class="buy2" id="repair25">Reparar 25%</button>
+              <button class="buy2" id="repair100">Reparar 100%</button>
+            </div>
+            <div class="tiny" id="repairCostTxt">Costo: —</div>
+          </div>
+
+          <div class="item">
+            <h4>⚠️ Penalizaciones (si roto)</h4>
+            <p class="tiny">
+              • Motor roto: -35% velocidad<br>
+              • Arma rota: +60% cooldown y -30% daño<br>
+              • Escudo roto: baja el bloqueo y consume escudos “peor”<br>
+              • Casco roto: recibes +1 daño al chocar y golpes pegan más duro
+            </p>
+          </div>
+        </div>
+
+        <div id="viewRank" style="display:none">
+          <div class="small"><b>Ranking corporativo (local)</b>: campeones y ganancias del torneo.</div>
+          <div class="item">
+            <h4>🏆 Top campeones <span class="badge" id="rankBadge">—</span></h4>
+            <div class="tiny" id="rankTxt">—</div>
+          </div>
+          <div class="item">
+            <h4>🎖️ Logros</h4>
+            <div class="tiny" id="achTxt">—</div>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+  </div>
+
+  <script src="./game_updated.js"></script>
+</body>
+</html>
