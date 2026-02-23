@@ -15,16 +15,20 @@
 
   let viewW=0, viewH=0, scale=1, offsetX=0, offsetY=0;
 
+  // camera shake (realismo)
+  let camShake = 0;
+
   function fitCanvas(){
     const stage = canvas.parentElement;
     const w = stage.clientWidth;
     const h = stage.clientHeight;
 
-    canvas.width = Math.floor(w * devicePixelRatio);
-    canvas.height = Math.floor(h * devicePixelRatio);
+    const DPR = Math.min(window.devicePixelRatio || 1, 2);
+    canvas.width = Math.floor(w * DPR);
+    canvas.height = Math.floor(h * DPR);
     canvas.style.width = w + 'px';
     canvas.style.height = h + 'px';
-    ctx.setTransform(devicePixelRatio,0,0,devicePixelRatio,0,0);
+    ctx.setTransform(DPR,0,0,DPR,0,0);
 
     viewW = w; viewH = h;
     scale = Math.min(viewW / WORLD_W, viewH / WORLD_H);
@@ -32,9 +36,22 @@
     offsetY = (viewH - WORLD_H*scale)/2;
   }
   window.addEventListener('resize', fitCanvas);
+  window.addEventListener('orientationchange', ()=>setTimeout(fitCanvas, 120));
   fitCanvas();
 
-  function beginWorld(){ ctx.save(); ctx.translate(offsetX, offsetY); ctx.scale(scale, scale); }
+  function beginWorld(){
+    ctx.save();
+    // shake en coordenadas de pantalla
+    if(camShake > 0){
+      const sx = (Math.random()-0.5) * camShake;
+      const sy = (Math.random()-0.5) * camShake;
+      ctx.translate(sx, sy);
+      camShake *= 0.88;
+      if(camShake < 0.2) camShake = 0;
+    }
+    ctx.translate(offsetX, offsetY);
+    ctx.scale(scale, scale);
+  }
   function endWorld(){ ctx.restore(); }
 
   // ===== Toast =====
@@ -85,6 +102,15 @@
     missile(){ tone('sawtooth', 140, 0.22, 0.05, 60); }
   };
   canvas.addEventListener('pointerdown', ensureAudio);
+  // ===== Mobile: prevent pinch-zoom / double-tap zoom =====
+  document.addEventListener('gesturestart', (e)=>e.preventDefault(), {passive:false});
+  document.addEventListener('gesturechange', (e)=>e.preventDefault(), {passive:false});
+  document.addEventListener('gestureend', (e)=>e.preventDefault(), {passive:false});
+  document.addEventListener('touchmove', (e)=>{
+    // evita scroll mientras juegas (especialmente sobre canvas)
+    if(e.target === canvas || canvas.contains(e.target)) e.preventDefault();
+  }, {passive:false});
+
 
   // ===== Progress =====
   let totalCoins = Number(LS.get('corp_totalCoins', 0)) || 0;
@@ -870,6 +896,7 @@
 
   // GOD explosion + debris
   function createExplosion(x,y,color, power=1){
+    camShake = Math.max(camShake, 10*power);
     const n = Math.floor(18*power);
     for(let i=0;i<n;i++){
       particles.push({ x,y, vx:(Math.random()-0.5)*10*power, vy:(Math.random()-0.5)*10*power, life:1, color, size:rand(1.6,3.8)*power });
