@@ -211,3 +211,97 @@ canvas{
 @media (pointer: coarse){
   .touch{ display:block; }
 }
+/* =========================
+   FULLSCREEN + MOBILE PRO
+   ========================= */
+
+/* Mejor viewport en móviles modernos */
+html, body{
+  height: 100%;
+}
+
+/* En móvil: el juego ocupa TODA la pantalla y HUD flota encima */
+@media (max-width: 1020px){
+
+  body{
+    height: 100dvh;
+    overflow: hidden;
+  }
+
+  /* HUD flotante arriba */
+  .hud{
+    position: fixed;
+    top: 0;
+    left: 0;
+    right: 0;
+    z-index: 50;
+
+    padding-top: calc(10px + env(safe-area-inset-top));
+  }
+
+  /* El juego ocupa toda la pantalla */
+  .main{
+    position: fixed;
+    inset: 0;
+    z-index: 1;
+    grid-template-columns: 1fr !important;
+  }
+
+  .stage{
+    height: 100dvh;
+  }
+
+  canvas{
+    width: 100vw !important;
+    height: 100dvh !important;
+    touch-action: none;
+  }
+
+  /* === TIENDA COMO APARTADO (pantalla completa) === */
+  .side{
+    display: flex !important;
+    position: fixed;
+    inset: 0;
+    z-index: 200;
+
+    border-left: none;
+    background: rgba(0,0,0,.92);
+    backdrop-filter: blur(10px);
+
+    transform: translateY(110%);
+    transition: transform .18s ease;
+  }
+
+  .side.open{
+    transform: translateY(0%);
+  }
+
+  .side header{
+    position: sticky;
+    top: 0;
+    z-index: 2;
+    background: rgba(0,0,0,.65);
+    padding-top: calc(12px + env(safe-area-inset-top));
+  }
+
+  .side .content{
+    padding-bottom: calc(18px + env(safe-area-inset-bottom));
+  }
+
+  /* Botón cerrar tienda (solo móvil) */
+  .closeShopBtn{
+    display: inline-flex !important;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+  }
+
+  /* Botón “Tienda” en HUD (solo móvil) */
+  #btnShopMobile{
+    display: inline-flex !important;
+  }
+}
+
+/* En desktop: todo normal, ocultar botón móvil */
+#btnShopMobile{ display:none; }
+.closeShopBtn{ display:none; }
